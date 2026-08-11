@@ -1,0 +1,122 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Section from '@/components/Section.astro';
+import ServiceCard from '@/components/ServiceCard.astro';
+import CTA from '@/components/CTA.astro';
+import Icon from '@/components/Icon.astro';
+import { SERVICES, CASES, SITE } from '@/consts';
+
+const pillars = [
+  { title: 'El dominio es tuyo', text: 'Todo se registra a nombre de tu empresa. Nosotros solo administramos.' },
+  { title: 'Sin downtime', text: 'Migraciones y transferencias planificadas para que el servicio nunca se corte.' },
+  { title: 'Un solo contacto', text: 'Web, dominio, correo, hosting y seguridad gestionados por el mismo equipo.' },
+  { title: 'Sin tecnicismos', text: 'Te explicamos qué pasa y por qué, en español claro.' },
+];
+---
+
+<BaseLayout>
+  <!-- Hero -->
+  <section class="relative overflow-hidden bg-ink-900">
+    <div
+      class="absolute inset-0 opacity-30"
+      style="background-image: radial-gradient(600px circle at 20% 0%, #0ea5e9 0%, transparent 60%), radial-gradient(700px circle at 90% 20%, #0369a1 0%, transparent 55%)"
+      aria-hidden="true"
+    >
+    </div>
+    <div class="relative mx-auto max-w-6xl px-4 py-24 sm:py-32">
+      <div class="max-w-3xl">
+        <p class="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-xs font-medium text-brand-300">
+          <span class="h-1.5 w-1.5 rounded-full bg-brand-400"></span>
+          Ciberseguridad · Web · Dominios · Hosting
+        </p>
+        <h1 class="mt-6 text-4xl font-bold tracking-tight text-white sm:text-6xl">
+          Tu presencia digital,<br />
+          <span class="text-brand-400">protegida y sin dolores de cabeza</span>
+        </h1>
+        <p class="mt-6 max-w-2xl text-lg leading-relaxed text-slate-300">
+          {SITE.description}
+        </p>
+        <div class="mt-9 flex flex-wrap gap-3">
+          <a
+            href="/contacto"
+            class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-400"
+          >
+            Solicitar propuesta
+            <Icon name="arrow" class="h-4 w-4" />
+          </a>
+          <a
+            href="/precios"
+            class="rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 transition-colors hover:bg-slate-800"
+          >
+            Ver planes
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pilares -->
+  <Section
+    eyebrow="Por qué ResguardaIt"
+    title="Lo técnico lo llevamos nosotros"
+    subtitle="Trabajamos como el área de sistemas que tu empresa no tiene que contratar."
+  >
+    <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        pillars.map((p) => (
+          <div class="rounded-2xl border border-slate-200 bg-white p-6">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+              <Icon name="check" class="h-5 w-5" />
+            </div>
+            <h3 class="mt-4 font-semibold text-ink-900">{p.title}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-slate-600">{p.text}</p>
+          </div>
+        ))
+      }
+    </div>
+  </Section>
+
+  <!-- Servicios -->
+  <Section
+    eyebrow="Servicios"
+    title="Todo lo que tu empresa necesita en línea"
+    subtitle="Desde el registro del dominio hasta el monitoreo del servidor, en un solo lugar."
+    class="bg-slate-50/60"
+  >
+    <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {SERVICES.map((s) => <ServiceCard service={s} />)}
+    </div>
+    <div class="mt-10 text-center">
+      <a href="/servicios" class="inline-flex items-center gap-2 text-sm font-semibold text-brand-600 hover:text-brand-700">
+        Ver el detalle de cada servicio
+        <Icon name="arrow" class="h-4 w-4" />
+      </a>
+    </div>
+  </Section>
+
+  <!-- Casos -->
+  <Section eyebrow="Casos" title="Resultados, no promesas">
+    <div class="mt-12 grid gap-6 lg:grid-cols-3">
+      {
+        CASES.map((c) => (
+          <article class="rounded-2xl border border-slate-200 bg-white p-6">
+            <p class="text-xs font-semibold uppercase tracking-wider text-brand-600">{c.sector}</p>
+            <h3 class="mt-2 font-semibold text-ink-900">{c.client}</h3>
+            <p class="mt-3 text-sm leading-relaxed text-slate-600">{c.challenge}</p>
+            <ul class="mt-4 space-y-2 border-t border-slate-100 pt-4">
+              {c.results.map((r) => (
+                <li class="flex gap-2 text-sm font-medium text-ink-900">
+                  <Icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+                  {r}
+                </li>
+              ))}
+            </ul>
+          </article>
+        ))
+      }
+    </div>
+  </Section>
+
+  <CTA />
+  <div class="pb-8"></div>
+</BaseLayout>

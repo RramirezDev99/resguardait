@@ -1,0 +1,53 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Section from '@/components/Section.astro';
+import CTA from '@/components/CTA.astro';
+import Icon from '@/components/Icon.astro';
+import { CASES } from '@/consts';
+---
+
+<BaseLayout
+  title="Casos de éxito"
+  description="Proyectos reales de transferencia de dominios, migración de hosting, seguridad y rediseño web."
+>
+  <Section
+    eyebrow="Casos de éxito"
+    title="Cómo trabajamos, con ejemplos"
+    subtitle="Estos son escenarios habituales entre nuestros clientes. Reemplaza los datos por tus casos reales cuando los tengas documentados."
+  >
+    <div class="mt-14 space-y-6">
+      {
+        CASES.map((c) => (
+          <article class="grid gap-6 rounded-2xl border border-slate-200 bg-white p-7 lg:grid-cols-3">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-brand-600">{c.sector}</p>
+              <h2 class="mt-2 text-xl font-semibold text-ink-900">{c.client}</h2>
+            </div>
+            <div class="lg:col-span-2 lg:grid lg:grid-cols-2 lg:gap-6">
+              <div>
+                <h3 class="text-sm font-semibold text-ink-900">El problema</h3>
+                <p class="mt-2 text-sm leading-relaxed text-slate-600">{c.challenge}</p>
+                <h3 class="mt-5 text-sm font-semibold text-ink-900">Lo que hicimos</h3>
+                <p class="mt-2 text-sm leading-relaxed text-slate-600">{c.solution}</p>
+              </div>
+              <div class="mt-6 lg:mt-0">
+                <h3 class="text-sm font-semibold text-ink-900">Resultados</h3>
+                <ul class="mt-2 space-y-2">
+                  {c.results.map((r) => (
+                    <li class="flex gap-2 text-sm text-slate-600">
+                      <Icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+                      {r}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </Section>
+
+  <CTA title="¿Tu empresa está en una situación parecida?" />
+  <div class="pb-8"></div>
+</BaseLayout>

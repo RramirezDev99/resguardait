@@ -1,0 +1,28 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Section from '@/components/Section.astro';
+import ServiceCard from '@/components/ServiceCard.astro';
+import CTA from '@/components/CTA.astro';
+import { SERVICES } from '@/consts';
+---
+
+<BaseLayout
+  title="Servicios"
+  description="Ciberseguridad, desarrollo web, registro y transferencia de dominios, hosting administrado, correo corporativo y soporte técnico para empresas."
+>
+  <Section
+    eyebrow="Servicios"
+    title="Qué hacemos por tu empresa"
+    subtitle="Cada servicio se puede contratar por separado o combinado dentro de un plan mensual."
+  >
+    <div class="mt-14 grid gap-6 lg:grid-cols-2">
+      {SERVICES.map((s) => <ServiceCard service={s} showFeatures />)}
+    </div>
+  </Section>
+
+  <CTA
+    title="¿No sabes por dónde empezar?"
+    text="Hacemos un diagnóstico gratuito de tu dominio, tu hosting y tu sitio, y te decimos qué conviene atender primero."
+  />
+  <div class="pb-8"></div>
+</BaseLayout>
