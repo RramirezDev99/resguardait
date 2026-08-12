@@ -4,9 +4,8 @@ import Section from '@/components/Section.astro';
 import Icon from '@/components/Icon.astro';
 import { SITE } from '@/consts';
 
-// ⚠️ Reemplaza WEB3FORMS_ACCESS_KEY por la clave que te llega al correo
-// tras registrarte en https://web3forms.com (gratis, sin crear cuenta).
-const WEB3FORMS_ACCESS_KEY = 'TU_ACCESS_KEY';
+// Clave desde variable de entorno WEB3FORMS_ACCESS_KEY (ver .env.example).
+const WEB3FORMS_ACCESS_KEY = import.meta.env.WEB3FORMS_ACCESS_KEY;
 
 const steps = [
   'Nos cuentas tu situación actual (dominio, web, hosting, correo).',
