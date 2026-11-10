@@ -9,10 +9,13 @@ Sitio web de ResguardaIt construido con **Astro 5 + Tailwind CSS 4**, desplegado
 ```
 resguardait/
 ├── public/                 # Archivos estáticos (se copian tal cual)
+│   ├── animacion/
+│   │   └── index.html      # Animación de marca completa  →  /animacion/
 │   ├── favicon.svg
 │   └── robots.txt
 ├── src/
 │   ├── components/         # Piezas reutilizables de UI
+│   │   ├── BrandAnimation.astro    # Animación del hero (solo CSS)
 │   │   ├── CTA.astro
 │   │   ├── Footer.astro
 │   │   ├── Header.astro
@@ -130,6 +133,15 @@ Contenido en Markdown.
 
 El archivo aparece automáticamente en `/blog` y su URL es `/blog/mi-articulo`.
 Usa `draft: true` para escribirlo sin publicarlo.
+
+---
+
+## Animación de marca
+
+Son dos piezas independientes:
+
+- **Hero** — `src/components/BrandAnimation.astro`, usado en `src/pages/index.astro`. Es solo CSS: un ciclo de 9.6 s en bucle que escala con el ancho de su contenedor. Las alertas y sus textos están en el array `alerts` del propio componente. Con `prefers-reduced-motion` muestra la ilustración fija.
+- **Página completa** — `public/animacion/index.html`, servida tal cual en `/animacion/`. Son las cuatro escenas (28 s) con pausa y salto entre escenas. Lleva `noindex`, no pasa por el build y carga sus fuentes desde Google Fonts. Se puede compartir el enlace o incrustar con `<iframe src="/animacion/">`.
 
 ---
 
