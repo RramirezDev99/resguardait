@@ -4,6 +4,7 @@ import Section from '@/components/Section.astro';
 import ServiceCard from '@/components/ServiceCard.astro';
 import CTA from '@/components/CTA.astro';
 import Icon from '@/components/Icon.astro';
+import BrandAnimation from '@/components/BrandAnimation.astro';
 import { SERVICES, CASES, SITE } from '@/consts';
 
 const pillars = [
@@ -24,33 +25,36 @@ const pillars = [
     >
     </div>
     <div class="relative mx-auto max-w-6xl px-4 py-24 sm:py-32">
-      <div class="max-w-3xl">
-        <p class="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-xs font-medium text-brand-300">
-          <span class="h-1.5 w-1.5 rounded-full bg-brand-400"></span>
-          Ciberseguridad · Web · Dominios · Hosting
-        </p>
-        <h1 class="mt-6 text-4xl font-bold tracking-tight text-white sm:text-6xl">
-          Tu presencia digital,<br />
-          <span class="text-brand-400">protegida y sin dolores de cabeza</span>
-        </h1>
-        <p class="mt-6 max-w-2xl text-lg leading-relaxed text-slate-300">
-          {SITE.description}
-        </p>
-        <div class="mt-9 flex flex-wrap gap-3">
-          <a
-            href="/contacto"
-            class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-400"
-          >
-            Solicitar propuesta
-            <Icon name="arrow" class="h-4 w-4" />
-          </a>
-          <a
-            href="/precios"
-            class="rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 transition-colors hover:bg-slate-800"
-          >
-            Ver planes
-          </a>
+      <div class="grid items-center gap-14 xl:grid-cols-[minmax(0,1fr)_25rem] xl:gap-10">
+        <div class="max-w-3xl">
+          <p class="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-xs font-medium text-brand-300">
+            <span class="h-1.5 w-1.5 rounded-full bg-brand-400"></span>
+            Ciberseguridad · Web · Dominios · Hosting
+          </p>
+          <h1 class="mt-6 text-4xl font-bold tracking-tight text-white sm:text-6xl">
+            Tu presencia digital,<br />
+            <span class="text-brand-400">protegida y sin dolores de cabeza</span>
+          </h1>
+          <p class="mt-6 max-w-2xl text-lg leading-relaxed text-slate-300">
+            {SITE.description}
+          </p>
+          <div class="mt-9 flex flex-wrap gap-3">
+            <a
+              href="/contacto"
+              class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-400"
+            >
+              Solicitar propuesta
+              <Icon name="arrow" class="h-4 w-4" />
+            </a>
+            <a
+              href="/precios"
+              class="rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 transition-colors hover:bg-slate-800"
+            >
+              Ver planes
+            </a>
+          </div>
         </div>
+        <BrandAnimation class="mx-auto max-w-sm xl:max-w-none" />
       </div>
     </div>
   </section>
