@@ -43,7 +43,8 @@ resguardait/
 │   └── consts.ts           # ⭐ Textos, servicios, planes y casos
 ├── astro.config.mjs
 ├── package.json
-└── tsconfig.json
+├── tsconfig.json
+└── wrangler.jsonc          # Despliegue: Cloudflare publica dist/ como sitio estático
 ```
 
 **Regla clave:** casi todo el contenido editable vive en `src/consts.ts`. Cambiar un servicio, un plan o el correo de contacto no requiere tocar el HTML.
@@ -112,6 +113,8 @@ Como el dominio ya está en Cloudflare, los registros DNS se crean solos. Repite
 ### A partir de aquí
 
 Cada `git push` a `main` publica automáticamente. Las ramas generan URLs de preview, así que puedes revisar cambios antes de que lleguen a producción.
+
+> `wrangler.jsonc` le indica a Cloudflare qué publicar: la carpeta `dist/` como sitio estático, con la página 404 del sitio. El campo `name` debe coincidir con el nombre del Worker en el panel.
 
 ---
 
