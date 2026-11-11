@@ -1,0 +1,401 @@
+---
+/**
+ * Animación del hero: cinco alertas típicas rodean un escudo vacío; el escudo se
+ * activa y cada alerta pasa a su estado resuelto.
+ *
+ * Solo CSS: un ciclo de 9.6 s en bucle, sin JavaScript para animar (el script del
+ * final solo la pausa cuando sale de pantalla). Todas las medidas son múltiplos de
+ * --u (1 % del ancho del componente), así que escala con la columna donde se ponga.
+ * Con `prefers-reduced-motion` queda fija la ilustración ya resuelta.
+ */
+interface Props {
+  class?: string;
+}
+const { class: className = '' } = Astro.props;
+
+const SHIELD = 'M16 2 4 7v9c0 7.2 5 12.4 12 14 7-1.6 12-6.8 12-14V7L16 2Z';
+const CHECK = 'm11 16 3.5 3.5L22 12';
+
+// Cada alerta y su estado resuelto. x / y: centro de la tarjeta respecto al centro
+// del escudo, en unidades --u. r: inclinación en grados. El orden es el de aparición.
+const alerts = [
+  { x: -23, y: -38, r: -4, bad: ['503', 'Sitio caído'], good: ['200 OK', 'Sitio en línea'] },
+  { x: 23, y: 36, r: -3, bad: ['Respaldo', 'Sin respaldos'], good: ['Respaldo', 'Respaldo diario'] },
+  { x: 24, y: -29, r: 3, bad: ['http://', 'Sitio no seguro'], good: ['https://', 'Conexión segura'] },
+  { x: -24, y: 29, r: 3, bad: ['Dominio', 'A nombre de otro'], good: ['Dominio', 'A tu nombre'] },
+  { x: -3, y: 48, r: 2, bad: ['SPF · fail', 'Correo en spam'], good: ['SPF · pass', 'Correo entregado'] },
+];
+---
+
+<div
+  class:list={['ba', className]}
+  role="img"
+  aria-label="Alertas como sitio caído, correo en spam o dominio a nombre de otro, que el escudo de ResguardaIt resuelve una por una."
+  data-brand-animation
+>
+  <div class="stage">
+    <div class="mark">
+      <i class="glow danger"></i>
+      <i class="glow aura"></i>
+      <i class="glow flash"></i>
+      <i class="glow halo"></i>
+      <i class="glow halo"></i>
+      <svg class="ghost" viewBox="3 1 26 30"><path d={SHIELD}></path></svg>
+      <svg class="fill" viewBox="3 1 26 30"><path d={SHIELD}></path></svg>
+      <svg class="edge" viewBox="3 1 26 30"><path d={SHIELD}></path></svg>
+      <svg class="check" viewBox="3 1 26 30"><path d={CHECK}></path></svg>
+    </div>
+
+    {
+      alerts.map((a, i) => (
+        <div class="chip" style={`--x:${a.x};--y:${a.y};--r:${a.r}deg;--i:${i}`}>
+          <div class="chip-in">
+            <div class="face bad">
+              <i class="ic" />
+              <span class="k">{a.bad[0]}</span>
+              <span class="v">{a.bad[1]}</span>
+            </div>
+            <div class="face good">
+              <i class="ic">
+                <svg viewBox="0 0 24 24">
+                  <path d="m5 13 4 4L19 7" />
+                </svg>
+              </i>
+              <span class="k">{a.good[0]}</span>
+              <span class="v">{a.good[1]}</span>
+            </div>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  /* Estado base = ilustración resuelta (escudo activo y tarjetas en azul).
+     Los keyframes describen el ciclo completo; los porcentajes son segundos / 9.6. */
+  .ba {
+    --brand: var(--color-brand-500, #0ea5e9);
+    --brand-hi: var(--color-brand-400, #38bdf8);
+    --brand-pale: var(--color-brand-300, #7dd3fc);
+    --alert: #fb7185;
+    --t: 9.6s;
+    --play: running;
+    container-type: inline-size;
+    width: 100%;
+  }
+  .ba[data-paused] {
+    --play: paused;
+  }
+  .stage {
+    --u: 4px;
+    position: relative;
+    aspect-ratio: 100 / 104;
+  }
+  @supports (width: 1cqw) {
+    .stage {
+      --u: 1cqw;
+    }
+  }
+
+  /* ---------- escudo ---------- */
+  .mark {
+    position: absolute;
+    left: 50%;
+    top: calc(var(--u) * 47);
+    width: calc(var(--u) * 37.8);
+    height: calc(var(--u) * 43.6);
+    transform: translate(-50%, -50%);
+  }
+  .mark svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .glow {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .danger {
+    inset: -95%;
+    background: radial-gradient(circle, rgb(244 63 94 / 0.26), rgb(244 63 94 / 0) 62%);
+    opacity: 0;
+    animation: ba-danger var(--t) linear infinite both;
+  }
+  .aura {
+    inset: -45%;
+    background: radial-gradient(circle, rgb(14 165 233 / 0.3), rgb(14 165 233 / 0) 65%);
+    animation: ba-aura var(--t) linear infinite both;
+  }
+  .flash {
+    inset: -70%;
+    background: radial-gradient(circle, rgb(56 189 248 / 0.5), rgb(56 189 248 / 0) 62%);
+    opacity: 0;
+    animation: ba-flash var(--t) linear infinite both;
+  }
+  .halo {
+    left: 50%;
+    top: 50%;
+    width: calc(var(--u) * 36);
+    height: calc(var(--u) * 36);
+    margin: calc(var(--u) * -18) 0 0 calc(var(--u) * -18);
+    border: 1.5px solid var(--brand-hi);
+    opacity: 0;
+    animation: ba-halo var(--t) linear infinite both;
+  }
+  .halo + .halo {
+    animation-delay: 0.28s;
+  }
+  .ghost {
+    opacity: 0;
+    animation: ba-ghost var(--t) linear infinite both;
+  }
+  .ghost path {
+    fill: rgb(148 163 184 / 0.05);
+    stroke: #64748b;
+    stroke-width: 0.55;
+    stroke-dasharray: 1.5 1.5;
+    stroke-linejoin: round;
+    animation: ba-breathe 1.6s ease-in-out infinite alternate;
+  }
+  .fill {
+    animation: ba-fill var(--t) linear infinite both;
+  }
+  .fill path {
+    fill: var(--brand);
+  }
+  .edge path {
+    --len: 84.6; /* longitud del contorno (84.02) con margen */
+    fill: none;
+    stroke: var(--brand-hi);
+    stroke-width: 0.8;
+    stroke-linejoin: round;
+    stroke-dasharray: var(--len);
+    opacity: 0;
+    animation: ba-edge var(--t) linear infinite both;
+  }
+  .check path {
+    --len: 16.2; /* longitud de la palomita (15.56) con margen */
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: var(--len);
+    animation: ba-check var(--t) linear infinite both;
+  }
+
+  /* ---------- tarjetas ---------- */
+  .chip {
+    position: absolute;
+    left: 50%;
+    top: calc(var(--u) * 47);
+    transform: translate(-50%, -50%) translate(calc(var(--x) * var(--u)), calc(var(--y) * var(--u)))
+      rotate(var(--r));
+  }
+  .chip-in {
+    display: grid;
+    animation: ba-chip var(--t) linear infinite both;
+    animation-delay: calc(var(--i) * 0.34s);
+  }
+  .face {
+    grid-area: 1 / 1;
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: start;
+    align-content: center;
+    column-gap: calc(var(--u) * 2.2);
+    padding: calc(var(--u) * 1.9) calc(var(--u) * 3.4) calc(var(--u) * 2) calc(var(--u) * 2.6);
+    border: 1px solid;
+    border-radius: calc(var(--u) * 2.8);
+    background: rgb(13 20 36 / 0.94);
+    box-shadow: 0 calc(var(--u) * 1.6) calc(var(--u) * 4.5) rgb(2 6 23 / 0.55);
+    text-align: left;
+    white-space: nowrap;
+  }
+  .ic {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: center;
+    display: grid;
+    place-items: center;
+    width: calc(var(--u) * 4.6);
+    height: calc(var(--u) * 4.6);
+    border-radius: 50%;
+  }
+  .k {
+    grid-column: 2;
+    grid-row: 1;
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+    font-size: calc(var(--u) * 2.6);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+  .v {
+    grid-column: 2;
+    grid-row: 2;
+    font-size: calc(var(--u) * 3.5);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    color: #f8fafc;
+  }
+  .bad {
+    border-color: rgb(251 113 133 / 0.5);
+    opacity: 0;
+    animation: ba-bad var(--t) linear infinite both;
+    animation-delay: calc(var(--i) * 0.13s);
+  }
+  .bad .ic {
+    background: rgb(251 113 133 / 0.14);
+  }
+  .bad .ic::after {
+    content: '';
+    width: calc(var(--u) * 1.7);
+    height: calc(var(--u) * 1.7);
+    border-radius: 50%;
+    background: var(--alert);
+    animation: ba-alarm 0.7s ease-in-out infinite alternate;
+  }
+  .bad .k {
+    color: var(--alert);
+  }
+  .good {
+    border-color: rgb(56 189 248 / 0.55);
+    box-shadow:
+      0 0 0 1px rgb(56 189 248 / 0.12),
+      0 calc(var(--u) * 1.6) calc(var(--u) * 5) rgb(14 165 233 / 0.25);
+    animation: ba-good var(--t) linear infinite both;
+    animation-delay: calc(var(--i) * 0.13s);
+  }
+  .good .ic {
+    background: rgb(14 165 233 / 0.18);
+    color: var(--brand-hi);
+  }
+  .good .ic svg {
+    width: 60%;
+    height: 60%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .good .k {
+    color: var(--brand-pale);
+  }
+
+  /* Pausa (fuera de pantalla) para todo lo animado */
+  .danger,
+  .aura,
+  .flash,
+  .halo,
+  .ghost,
+  .ghost path,
+  .fill,
+  .edge path,
+  .check path,
+  .chip-in,
+  .bad,
+  .bad .ic::after,
+  .good {
+    animation-play-state: var(--play);
+  }
+
+  /* ---------- ciclo de 9.6 s ---------- */
+  /* 0 – 2.6 s  escudo vacío y alertas · 2.6 – 4.5 s  se activa y las resuelve
+     4.5 – 7.7 s  resuelto · 7.7 – 9.6 s  salen las tarjetas y vuelve el escudo vacío */
+  @keyframes ba-ghost {
+    0%, 27.08% { opacity: 1; }
+    31.77%, 92.71% { opacity: 0; }
+    98.96%, 100% { opacity: 1; }
+  }
+  @keyframes ba-breathe {
+    from { opacity: 0.5; }
+    to { opacity: 1; }
+  }
+  @keyframes ba-danger {
+    0%, 2.6% { opacity: 0; }
+    15.6%, 28.1% { opacity: 1; }
+    35.4%, 100% { opacity: 0; }
+  }
+  @keyframes ba-edge {
+    0%, 27.08% { stroke-dashoffset: var(--len); opacity: 0; }
+    27.2% { stroke-dashoffset: var(--len); opacity: 1; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+    35.21%, 39.06% { stroke-dashoffset: 0; opacity: 1; }
+    43.75%, 100% { stroke-dashoffset: 0; opacity: 0; }
+  }
+  @keyframes ba-fill {
+    0%, 33.33% { opacity: 0; transform: scale(0.8); animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
+    39.58%, 92.71% { opacity: 1; transform: scale(1); }
+    98.96%, 100% { opacity: 0; transform: scale(1); }
+  }
+  @keyframes ba-check {
+    0%, 37.71% { stroke-dashoffset: var(--len); opacity: 0; }
+    37.8% { stroke-dashoffset: var(--len); opacity: 1; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+    42.92%, 92.71% { stroke-dashoffset: 0; opacity: 1; }
+    98.96%, 100% { stroke-dashoffset: 0; opacity: 0; }
+  }
+  @keyframes ba-flash {
+    0%, 33.33% { opacity: 0; transform: scale(0.6); }
+    35.8% { opacity: 1; }
+    44.79%, 100% { opacity: 0; transform: scale(1.3); }
+  }
+  @keyframes ba-halo {
+    0%, 33.33% { opacity: 0; transform: scale(0.6); animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+    34.6% { opacity: 0.8; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+    46.35%, 100% { opacity: 0; transform: scale(3.4); }
+  }
+  @keyframes ba-aura {
+    0%, 34.375% { opacity: 0; }
+    42.71%, 92.71% { opacity: 1; }
+    98.96%, 100% { opacity: 0; }
+  }
+  /* cada tarjeta entra y sale con 0.34 s de desfase (animation-delay) */
+  @keyframes ba-chip {
+    0%, 4.17% { opacity: 0; transform: translateY(calc(var(--u) * 3)) scale(0.7); animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
+    9.375% { opacity: 1; transform: translateY(0) scale(1); }
+    80.21% { opacity: 1; transform: translateY(0) scale(1); animation-timing-function: cubic-bezier(0.5, 0, 0.75, 0); }
+    84.375%, 100% { opacity: 0; transform: translateY(calc(var(--u) * -2)) scale(0.9); }
+  }
+  /* la cara de alerta gira y deja ver la resuelta; ambas se restablecen con la tarjeta ya oculta */
+  @keyframes ba-bad {
+    0%, 35.42% { opacity: 1; transform: perspective(calc(var(--u) * 60)) rotateX(0deg); animation-timing-function: cubic-bezier(0.5, 0, 0.75, 0); }
+    37.5%, 96.8% { opacity: 0; transform: perspective(calc(var(--u) * 60)) rotateX(80deg); }
+    96.875%, 100% { opacity: 1; transform: perspective(calc(var(--u) * 60)) rotateX(0deg); }
+  }
+  @keyframes ba-good {
+    0%, 37.29% { opacity: 0; transform: perspective(calc(var(--u) * 60)) rotateX(-80deg); animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
+    41.98%, 96.8% { opacity: 1; transform: perspective(calc(var(--u) * 60)) rotateX(0deg); }
+    96.875%, 100% { opacity: 0; transform: perspective(calc(var(--u) * 60)) rotateX(-80deg); }
+  }
+  @keyframes ba-alarm {
+    from { opacity: 0.35; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1.1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ba *,
+    .ba *::after {
+      animation: none !important;
+    }
+  }
+</style>
+
+<script>
+  // Pausa la animación mientras el componente no está en pantalla.
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) entry.target.toggleAttribute('data-paused', !entry.isIntersecting);
+      },
+      { threshold: 0.1 },
+    );
+    document.querySelectorAll('[data-brand-animation]').forEach((el) => io.observe(el));
+  }
+</script>

@@ -1,0 +1,17 @@
+// Despliegue en Cloudflare Workers como sitio estático.
+//
+// Con este archivo Cloudflare publica la carpeta dist/ tal cual sale de `npm run build`.
+// Sin él, Wrangler intenta autoconfigurar el proyecto en cada despliegue (instalando el
+// adaptador de Cloudflare para Astro) y las ramas que no son `main` no pueden generar preview.
+{
+  // Debe coincidir con el nombre del Worker en el panel de Cloudflare.
+  "name": "resguardait",
+  "compatibility_date": "2026-11-10",
+  "assets": {
+    "directory": "./dist",
+    // Rutas inexistentes: responde 404 con dist/404.html (la página «No encontrada» del sitio).
+    "not_found_handling": "404-page",
+    // /servicios redirige a /servicios/ y sirve servicios/index.html.
+    "html_handling": "auto-trailing-slash"
+  }
+}

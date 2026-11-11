@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<!--
+  Animación de marca de ResguardaIt (28 s, cuatro escenas, en bucle).
+  Página independiente: Astro la copia tal cual a /animacion/. No pasa por el build ni usa
+  Tailwind; todo el CSS y el JS van aquí dentro. Sirve para compartir el enlace o para
+  incrustarla con <iframe src="/animacion/">: se adapta a vertical u horizontal según su caja.
+  Para capturarla cuadro por cuadro: window.resguardaAnim.at(ms).
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animación ResguardaIt</title>
+<meta name="description" content="Animación de marca de ResguardaIt: de los dolores de cabeza digitales a una presencia protegida.">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: one full-bleed dark stage. Every size is a multiple of --u (1/100 of the stage's
+     short side), and four centred scenes share a single 28 s timeline that loops. */
+  --ink:#0b1220;         /* fondo: ink-900 de la marca */
+  --surface:#111a2e;     /* tarjetas: ink-800 */
+  --line:#334155;        /* bordes */
+  --text:#f8fafc;
+  --soft:#cbd5e1;
+  --muted:#94a3b8;
+  --brand:#0ea5e9;       /* brand-500: el escudo */
+  --brand-hi:#38bdf8;    /* brand-400: acento sobre oscuro */
+  --brand-lo:#0284c7;    /* brand-600 */
+  --brand-pale:#7dd3fc;  /* brand-300 */
+  --alert:#fb7185;       /* estado de problema, fuera de la paleta de marca */
+  --font-display:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --out:cubic-bezier(.16,1,.3,1);
+  --back:cubic-bezier(.34,1.56,.64,1);
+  --inout:cubic-bezier(.65,0,.35,1);
+  --in:cubic-bezier(.5,0,.75,0);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--ink)}
+body{overflow:hidden;color:var(--text);font-family:var(--font-display);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+.stage{--u:min(1vw,.63vh);position:relative;width:100%;height:100%;min-height:320px;overflow:hidden;background:var(--ink);
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.stage.idle{cursor:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+
+/* ---------- shared keyframes ---------- */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeOut{to{opacity:0}}
+@keyframes rise{from{opacity:0;transform:translateY(calc(var(--u)*4))}to{opacity:1;transform:none}}
+@keyframes riseS{from{opacity:0;transform:translateY(calc(var(--u)*1.6))}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:none}}
+@keyframes up{from{transform:translateY(130%) rotate(7deg)}to{transform:none}}
+@keyframes drawOn{0%{stroke-dashoffset:var(--len);opacity:0}2%{opacity:1}100%{stroke-dashoffset:0;opacity:1}}
+@keyframes sheen{from{transform:translateX(-101%)}to{transform:translateX(101%)}}
+
+.rise{animation:rise .8s var(--out) both;animation-delay:calc(var(--s,0s) + var(--d,0s))}
+.pop{animation:pop .7s var(--back) both;animation-delay:calc(var(--s,0s) + var(--d,0s))}
+.m{display:inline-block;overflow:hidden;vertical-align:top;padding:.14em .05em .22em;margin:-.14em -.05em -.22em}
+.w{display:inline-block;transform-origin:0 100%;animation:up .85s var(--out) both;
+  animation-delay:calc(var(--s,0s) + var(--d,0s) + var(--i,0)*var(--st,.07s))}
+.blue{color:var(--brand-hi)}
+
+/* ---------- background ---------- */
+.bg{position:absolute;inset:0;overflow:hidden}
+.glow{position:absolute;left:50%;top:50%;width:calc(var(--u)*150);height:calc(var(--u)*150);
+  margin:calc(var(--u)*-75) 0 0 calc(var(--u)*-75);border-radius:50%;opacity:0}
+.ga{background:radial-gradient(circle,rgba(14,165,233,.36),rgba(14,165,233,0) 62%);
+  transform:translate(calc(var(--u)*-30),calc(var(--u)*-58));
+  animation:fadeIn .9s ease 3s both,a12 1.2s cubic-bezier(.65,0,.35,1) 9.5s forwards,a23 1.2s cubic-bezier(.65,0,.35,1) 16.3s forwards,
+    a34 1.2s cubic-bezier(.65,0,.35,1) 21.5s forwards,fadeOut .5s ease 27.5s forwards}
+.gb{background:radial-gradient(circle,rgba(3,105,161,.46),rgba(3,105,161,0) 60%);
+  transform:translate(calc(var(--u)*42),calc(var(--u)*-28));
+  animation:fadeIn .9s ease 3.1s both,b12 1.2s cubic-bezier(.65,0,.35,1) 9.5s forwards,b23 1.2s cubic-bezier(.65,0,.35,1) 16.3s forwards,
+    b34 1.2s cubic-bezier(.65,0,.35,1) 21.5s forwards,fadeOut .5s ease 27.5s forwards}
+@keyframes a12{from{transform:translate(calc(var(--u)*-30),calc(var(--u)*-58))}to{transform:translate(0,calc(var(--u)*8)) scale(1.1)}}
+@keyframes a23{from{transform:translate(0,calc(var(--u)*8)) scale(1.1)}to{transform:translate(calc(var(--u)*36),calc(var(--u)*-42)) scale(1)}}
+@keyframes a34{from{transform:translate(calc(var(--u)*36),calc(var(--u)*-42)) scale(1)}to{transform:translate(calc(var(--u)*-6),calc(var(--u)*36)) scale(1.15)}}
+@keyframes b12{from{transform:translate(calc(var(--u)*42),calc(var(--u)*-28))}to{transform:translate(calc(var(--u)*-38),calc(var(--u)*52))}}
+@keyframes b23{from{transform:translate(calc(var(--u)*-38),calc(var(--u)*52))}to{transform:translate(calc(var(--u)*-42),calc(var(--u)*30))}}
+@keyframes b34{from{transform:translate(calc(var(--u)*-42),calc(var(--u)*30))}to{transform:translate(calc(var(--u)*34),calc(var(--u)*-50))}}
+.grid-mask{position:absolute;inset:0;opacity:.5;
+  -webkit-mask-image:radial-gradient(ellipse 64% 58% at 50% 50%,#000 12%,transparent 100%);
+  mask-image:radial-gradient(ellipse 64% 58% at 50% 50%,#000 12%,transparent 100%);
+  animation:gridFlash 1.5s ease-out 3.15s both}
+@keyframes gridFlash{0%{opacity:.5}15%{opacity:1}100%{opacity:.5}}
+.grid-dots{position:absolute;inset:calc(var(--u)*-6);
+  background-image:radial-gradient(circle,rgba(148,163,184,.36) 0,rgba(148,163,184,.36) 1px,transparent 1.6px);
+  background-size:calc(var(--u)*5.5) calc(var(--u)*5.5);background-position:center}
+.vig{position:absolute;inset:0;background:radial-gradient(ellipse 75% 70% at 50% 45%,rgba(4,8,16,0) 50%,rgba(4,8,16,.6) 100%)}
+
+/* ---------- scenes ---------- */
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  padding:calc(var(--u)*5);pointer-events:none;
+  animation:sceneIn .02s linear both,sceneOut .5s var(--in) forwards;animation-delay:calc(var(--s) - .03s),var(--e)}
+@keyframes sceneIn{from{visibility:hidden}to{visibility:visible}}
+@keyframes sceneOut{to{opacity:0;visibility:hidden;transform:translateY(calc(var(--u)*-3)) scale(.985)}}
+
+.eyebrow{margin:0;font-size:calc(var(--u)*3);font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--brand-hi)}
+.h{margin:0;font-size:calc(var(--u)*6.6);font-weight:700;letter-spacing:-.025em;line-height:1.1;color:var(--text);text-wrap:balance}
+.sub{margin:0;font-size:calc(var(--u)*3.8);line-height:1.4;color:var(--soft);text-wrap:balance}
+.head{display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*2.4)}
+.land .pbr{display:none}
+
+/* ---------- scene 1: de los problemas al escudo ---------- */
+.lockup{display:flex;flex-direction:column;align-items:center}
+.mark{--shift:calc(var(--u)*29.7);position:relative;width:calc(var(--u)*27);height:calc(var(--u)*31.15)}
+.land .mark{--shift:calc(var(--u)*24.6)}
+.mark-move{position:absolute;inset:0;animation:settle .95s var(--inout) 5.3s both}
+@keyframes settle{from{transform:translateY(var(--shift)) scale(1.4)}to{transform:none}}
+.sh{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.danger{position:absolute;inset:-95%;border-radius:50%;background:radial-gradient(circle,rgba(244,63,94,.26),rgba(244,63,94,0) 62%);
+  animation:fadeIn 1.3s ease .25s both,fadeOut .7s ease 2.7s forwards}
+.aura{position:absolute;inset:-45%;border-radius:50%;background:radial-gradient(circle,rgba(14,165,233,.3),rgba(14,165,233,0) 65%);
+  animation:fadeIn .8s ease 3.3s both}
+.flash{position:absolute;inset:-70%;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,.5),rgba(56,189,248,0) 62%);
+  opacity:0;animation:flash 1.1s ease-out 3.2s both}
+@keyframes flash{0%{opacity:0;transform:scale(.6)}22%{opacity:1}100%{opacity:0;transform:scale(1.3)}}
+.halo{position:absolute;left:50%;top:50%;width:calc(var(--u)*26);height:calc(var(--u)*26);
+  margin:calc(var(--u)*-13) 0 0 calc(var(--u)*-13);border-radius:50%;border:1.5px solid var(--brand-hi);opacity:0;
+  animation:halo 1.25s var(--out) var(--hd) both}
+@keyframes halo{0%{opacity:0;transform:scale(.6)}10%{opacity:.8}100%{opacity:0;transform:scale(3.4)}}
+.ghost{animation:ghostIn .6s var(--out) both,fadeOut .45s ease 2.6s forwards}
+@keyframes ghostIn{from{opacity:.5;transform:scale(.92)}to{opacity:1;transform:none}}
+.ghost path{fill:rgba(148,163,184,.05);stroke:#64748b;stroke-width:.55;stroke-dasharray:1.5 1.5;stroke-linejoin:round;
+  animation:amb-breathe 1.6s ease-in-out infinite alternate}
+@keyframes amb-breathe{from{opacity:.5}to{opacity:1}}
+.fill{animation:fillIn .6s var(--back) 3.2s both}
+@keyframes fillIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+.fill path{fill:var(--brand)}
+.edge{animation:fadeOut .45s ease 3.75s forwards}
+.edge path{fill:none;stroke:var(--brand-hi);stroke-width:.8;stroke-linejoin:round;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);
+  animation:drawOn .78s var(--inout) 2.6s both}
+.chk path{fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:var(--len);
+  stroke-dashoffset:var(--len);animation:drawOn .5s var(--out) 3.62s both}
+
+.chips{position:absolute;left:50%;top:50%;width:0;height:0;transform:translateY(var(--shift))}
+.hook{position:absolute;left:calc(var(--u)*-40);top:0;width:calc(var(--u)*80);margin:0;transform:translateY(calc(var(--u)*-62));
+  font-size:calc(var(--u)*5.2);font-weight:600;letter-spacing:-.01em;color:var(--soft);animation:fadeOut .4s var(--in) 2.45s forwards}
+.land .hook{transform:translateY(calc(var(--u)*-45))}
+.chip{--x:var(--px);--y:var(--py);position:absolute;left:0;top:0;
+  transform:translate(-50%,-50%) translate(calc(var(--x)*var(--u)),calc(var(--y)*var(--u))) rotate(var(--r))}
+.land .chip{--x:var(--lx);--y:var(--ly)}
+.chip-in{display:grid;animation:chipIn .5s var(--back) both,chipOut .45s var(--in) forwards;
+  animation-delay:calc(.5s + var(--i)*.36s),calc(5.2s + var(--i)*.05s)}
+@keyframes chipIn{from{opacity:0;transform:translateY(calc(var(--u)*3)) scale(.7)}to{opacity:1;transform:none}}
+@keyframes chipOut{to{opacity:0;transform:translate(calc(var(--x)*var(--u)*.45),calc(var(--y)*var(--u)*.45)) scale(.8)}}
+.face{grid-area:1/1;display:grid;grid-template-columns:auto auto;justify-content:start;align-content:center;
+  column-gap:calc(var(--u)*2.2);padding:calc(var(--u)*1.9) calc(var(--u)*3.4) calc(var(--u)*2) calc(var(--u)*2.6);
+  border-radius:calc(var(--u)*2.8);background:rgba(13,20,36,.94);border:1px solid var(--line);
+  box-shadow:0 calc(var(--u)*1.6) calc(var(--u)*4.5) rgba(2,6,23,.55);text-align:left;white-space:nowrap}
+.face .ic{grid-column:1;grid-row:1 / span 2;align-self:center;width:calc(var(--u)*4.6);height:calc(var(--u)*4.6);
+  border-radius:50%;display:grid;place-items:center}
+.face .k{grid-column:2;grid-row:1;font-family:var(--font-mono);font-size:calc(var(--u)*2.6);font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;line-height:1.3}
+.face .v{grid-column:2;grid-row:2;font-size:calc(var(--u)*3.5);font-weight:600;letter-spacing:-.01em;line-height:1.25;color:var(--text)}
+.bad{border-color:rgba(251,113,133,.5);animation:flipOut .2s var(--in) forwards;animation-delay:calc(3.4s + var(--i)*.13s)}
+.bad .ic{background:rgba(251,113,133,.14)}
+.bad .ic::after{content:"";width:calc(var(--u)*1.7);height:calc(var(--u)*1.7);border-radius:50%;background:var(--alert);
+  animation:amb-alarm .7s ease-in-out infinite alternate}
+@keyframes amb-alarm{from{opacity:.35;transform:scale(.8)}to{opacity:1;transform:scale(1.1)}}
+.bad .k{color:var(--alert)}
+.good{border-color:rgba(56,189,248,.55);
+  box-shadow:0 0 0 1px rgba(56,189,248,.12),0 calc(var(--u)*1.6) calc(var(--u)*5) rgba(14,165,233,.25);
+  animation:flipIn .45s var(--back) both;animation-delay:calc(3.58s + var(--i)*.13s)}
+.good .ic{background:rgba(14,165,233,.18);color:var(--brand-hi)}
+.good .ic svg{width:60%;height:60%;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.good .k{color:var(--brand-pale)}
+@keyframes flipOut{to{opacity:0;transform:perspective(calc(var(--u)*60)) rotateX(80deg)}}
+@keyframes flipIn{from{opacity:0;transform:perspective(calc(var(--u)*60)) rotateX(-80deg)}to{opacity:1;transform:perspective(calc(var(--u)*60)) rotateX(0deg)}}
+
+.wordmark{--d:5.85s;--st:.04s;overflow:hidden;padding:.1em .06em .16em;margin:calc(var(--u)*4.5 - .1em) 0 -.16em;
+  font-size:calc(var(--u)*12);font-weight:700;letter-spacing:-.035em;line-height:1.1;white-space:nowrap}
+.tagline{--d:6.5s;--st:.075s;margin:calc(var(--u)*4) 0 0;font-size:calc(var(--u)*7.4);font-weight:700;letter-spacing:-.03em;line-height:1.12}
+.land .tagline{font-size:calc(var(--u)*6.6)}
+.pill{--d:7.6s;margin:calc(var(--u)*5.5) 0 0;display:inline-flex;align-items:center;gap:calc(var(--u)*1.8);
+  padding:calc(var(--u)*1.5) calc(var(--u)*3.4);border:1px solid var(--line);border-radius:calc(var(--u)*10);
+  background:rgba(15,23,42,.6);color:var(--brand-pale);font-size:calc(var(--u)*3.05);font-weight:500;white-space:nowrap}
+.pill i{width:calc(var(--u)*1.4);height:calc(var(--u)*1.4);border-radius:50%;background:var(--brand-hi)}
+
+/* ---------- scene 2: servicios alrededor de un solo contacto ---------- */
+.s-serv{display:grid;grid-template:"head" auto "orbit" auto "cap" auto / auto;justify-items:center;align-content:center;row-gap:calc(var(--u)*4.6)}
+.s-serv .head{grid-area:head}
+.s-serv .orbit{grid-area:orbit}
+.s-serv .cap{grid-area:cap}
+.land .s-serv{grid-template:"head orbit" 1fr "cap orbit" 1fr / calc(var(--u)*60) auto;justify-content:center;justify-items:start;
+  align-content:center;text-align:left;column-gap:calc(var(--u)*8);row-gap:calc(var(--u)*4)}
+.land .s-serv .head{align-self:end;align-items:flex-start}
+.land .s-serv .cap{align-self:start}
+.land .s-serv .orbit{align-self:center}
+.orbit{--o:calc(var(--u)*.9);--R:calc(var(--o)*33.5);position:relative;flex:none;width:calc(var(--o)*100);height:calc(var(--o)*100)}
+.land .orbit{--o:calc(var(--u)*.82)}
+.rings{position:absolute;inset:0;width:100%;height:100%;overflow:visible;animation:ringsIn 1.1s var(--out) both;animation-delay:calc(var(--s) + .25s)}
+@keyframes ringsIn{from{opacity:0;transform:scale(.72) rotate(-30deg)}to{opacity:1;transform:none}}
+.rings circle{fill:none}
+.r-out{stroke:rgba(148,163,184,.13);stroke-width:.25}
+.r-mid{stroke:rgba(125,211,252,.36);stroke-width:.3;stroke-dasharray:.9 2.1}
+.r-in{stroke:rgba(125,211,252,.16);stroke-width:.25}
+.r-spin{animation:amb-spin 80s linear infinite}
+@keyframes amb-spin{to{transform:rotate(360deg)}}
+.spoke{position:absolute;left:50%;top:50%;width:var(--R);height:0;transform:rotate(var(--a));transform-origin:0 0}
+.spoke::before{content:"";position:absolute;left:calc(var(--o)*12.6);right:calc(var(--o)*8.4);top:-.75px;height:1.5px;border-radius:1px;
+  background:linear-gradient(90deg,rgba(56,189,248,.06),rgba(56,189,248,.8));transform-origin:0 50%;
+  animation:spoke .45s var(--out) both;animation-delay:calc(var(--s) + .85s + var(--i)*.34s)}
+@keyframes spoke{from{transform:scaleX(0)}to{transform:none}}
+.spoke b{position:absolute;inset:0;animation:fadeIn .3s linear both;animation-delay:calc(var(--s) + 1.5s + var(--i)*.34s)}
+.spoke b::after{content:"";position:absolute;left:calc(var(--o)*12.6);top:calc(var(--o)*-.65);width:calc(var(--o)*1.3);height:calc(var(--o)*1.3);
+  border-radius:50%;background:#e0f2fe;box-shadow:0 0 calc(var(--o)*1.6) calc(var(--o)*.4) rgba(56,189,248,.9);opacity:0;
+  animation:amb-pulse 3s linear infinite;animation-delay:calc(var(--i)*.5s)}
+@keyframes amb-pulse{0%{opacity:0;transform:translateX(0)}4%{opacity:1}20%{opacity:1}25%,100%{opacity:0;transform:translateX(calc(var(--o)*11.2))}}
+.hub{position:absolute;left:50%;top:50%;width:calc(var(--o)*17);height:calc(var(--o)*19.6);margin:calc(var(--o)*-9.8) 0 0 calc(var(--o)*-8.5)}
+.hub svg{position:relative;display:block;width:100%;height:100%;overflow:visible}
+.hub-glow{position:absolute;inset:-60%;border-radius:50%;background:radial-gradient(circle,rgba(14,165,233,.45),rgba(14,165,233,0) 62%);
+  animation:amb-glow 2.4s ease-in-out infinite alternate}
+@keyframes amb-glow{from{transform:scale(.9);opacity:.65}to{transform:scale(1.12);opacity:1}}
+.node{position:absolute;left:calc(50% + var(--x)*var(--R));top:calc(50% + var(--y)*var(--R));width:0;height:0}
+.tile{position:absolute;left:calc(var(--o)*-7.25);top:calc(var(--o)*-7.25);width:calc(var(--o)*14.5);height:calc(var(--o)*14.5);
+  border-radius:calc(var(--o)*4.2);display:grid;place-items:center;background:linear-gradient(155deg,#1a2848,var(--surface) 70%);
+  border:1px solid rgba(125,211,252,.22);color:var(--brand-pale);box-shadow:0 calc(var(--o)*1.5) calc(var(--o)*4) rgba(2,6,23,.5);
+  animation:pop .65s var(--back) both;animation-delay:calc(var(--s) + 1s + var(--i)*.34s)}
+.tile svg{width:calc(var(--o)*7.4);height:calc(var(--o)*7.4);fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tile::after{content:"";position:absolute;inset:-1px;border-radius:inherit;border:1px solid var(--brand-hi);
+  box-shadow:0 0 calc(var(--o)*3.4) rgba(56,189,248,.5),inset 0 0 calc(var(--o)*2.4) rgba(56,189,248,.22);opacity:0;
+  animation:amb-lit 3s ease-in-out infinite;animation-delay:calc(var(--i)*.5s + .5s)}
+@keyframes amb-lit{0%,34%,100%{opacity:0}9%,18%{opacity:1}}
+.lbl{position:absolute;left:calc(var(--o)*-22);width:calc(var(--o)*44);text-align:center;white-space:nowrap;
+  font-size:calc(var(--o)*3.9);font-weight:600;letter-spacing:-.005em;line-height:1.2;color:var(--text);
+  animation:riseS .55s var(--out) both;animation-delay:calc(var(--s) + 1.14s + var(--i)*.34s)}
+.node.up .lbl{bottom:calc(var(--o)*9.2)}
+.node.dn .lbl{top:calc(var(--o)*9.2)}
+
+/* ---------- scene 3: por qué ---------- */
+.s-why{gap:calc(var(--u)*5)}
+.land .s-why{gap:calc(var(--u)*4)}
+.s-why .sub{margin-top:calc(var(--u)*.8)}
+.why{list-style:none;margin:0;padding:0;display:grid;gap:calc(var(--u)*2.6);width:calc(var(--u)*88)}
+.land .why{grid-template-columns:1fr 1fr;width:calc(var(--u)*138)}
+.why li{position:relative;overflow:hidden;display:grid;grid-template-columns:auto 1fr;column-gap:calc(var(--u)*3.4);align-items:center;
+  text-align:left;padding:calc(var(--u)*3.2) calc(var(--u)*3.6);border-radius:calc(var(--u)*3.6);background:rgba(17,26,46,.84);
+  border:1px solid rgba(148,163,184,.16);animation:card .75s var(--out) both;animation-delay:calc(var(--s) + .85s + var(--i)*.26s)}
+@keyframes card{from{opacity:0;transform:translateX(calc(var(--u)*9))}to{opacity:1;transform:none}}
+.why li::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 38%,rgba(125,211,252,.16) 50%,transparent 62%);
+  transform:translateX(-101%);animation:sheen 1s var(--inout) both;animation-delay:calc(var(--s) + 1.15s + var(--i)*.26s)}
+.tick{width:calc(var(--u)*9.4);height:calc(var(--u)*9.4);border-radius:calc(var(--u)*2.8);display:grid;place-items:center;
+  background:rgba(14,165,233,.14);border:1px solid rgba(56,189,248,.22);color:var(--brand-hi)}
+.tick svg{width:calc(var(--u)*5.6);height:calc(var(--u)*5.6);fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.tick path{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:drawOn .5s var(--out) both;
+  animation-delay:calc(var(--s) + 1.2s + var(--i)*.26s)}
+.why b{display:block;font-size:calc(var(--u)*4.6);font-weight:600;letter-spacing:-.012em;line-height:1.2}
+.why .t{display:block;margin-top:calc(var(--u)*.7);font-size:calc(var(--u)*3.3);line-height:1.35;color:var(--muted);text-wrap:balance}
+
+/* ---------- scene 4: contacto ---------- */
+.s-cta{--e:99999s}
+.js .s-cta{--e:27.5s}
+.mini{display:inline-flex;align-items:center;gap:calc(var(--u)*2.2);font-size:calc(var(--u)*6.2);font-weight:700;letter-spacing:-.03em}
+.mini svg{width:calc(var(--u)*8.2);height:calc(var(--u)*9.46)}
+.s-cta .h{--d:.3s;--st:.08s;margin-top:calc(var(--u)*7);font-size:calc(var(--u)*9.4)}
+.s-cta .sub{--d:.8s;margin-top:calc(var(--u)*3.4)}
+.btn{--d:1.1s;position:relative;overflow:hidden;margin-top:calc(var(--u)*6.5);display:inline-flex;align-items:center;gap:calc(var(--u)*2.2);
+  padding:calc(var(--u)*3.9) calc(var(--u)*7);border-radius:calc(var(--u)*2.8);background:linear-gradient(180deg,#0c9bdc,var(--brand-lo));
+  color:#fff;font-size:calc(var(--u)*4.3);font-weight:600;
+  box-shadow:0 calc(var(--u)*2) calc(var(--u)*7) rgba(14,165,233,.38),inset 0 1px 0 rgba(255,255,255,.25)}
+.btn svg{width:calc(var(--u)*4.2);height:calc(var(--u)*4.2);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
+  animation:amb-nudge 1.1s ease-in-out infinite alternate}
+@keyframes amb-nudge{to{transform:translateX(calc(var(--u)*1))}}
+.btn::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 36%,rgba(255,255,255,.38) 50%,transparent 64%);
+  transform:translateX(-101%);animation:sheen 1s var(--inout) both;animation-delay:calc(var(--s) + 1.8s)}
+.urlbar{--d:1.5s;margin-top:calc(var(--u)*6);display:inline-flex;align-items:center;gap:calc(var(--u)*2);
+  padding:calc(var(--u)*2.1) calc(var(--u)*4.4) calc(var(--u)*2.1) calc(var(--u)*3.4);border:1px solid var(--line);
+  border-radius:calc(var(--u)*10);background:rgba(15,23,42,.66);font-family:var(--font-mono);font-size:calc(var(--u)*3.7);font-weight:500;color:var(--text)}
+.urlbar svg{flex:none;width:calc(var(--u)*3.8);height:calc(var(--u)*3.8);fill:none;stroke:var(--brand-hi);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.typed{display:inline-flex;align-items:center;width:16ch;white-space:nowrap;text-align:left}
+.typed span{display:inline-block;overflow:hidden;width:15ch;animation:type .95s steps(15,end) both;animation-delay:calc(var(--s) + 1.85s)}
+@keyframes type{from{width:0}to{width:15ch}}
+.caret{flex:none;width:.5ch;height:1.15em;margin-left:.15ch;background:var(--brand-hi);animation:amb-blink 1s steps(1,end) infinite}
+@keyframes amb-blink{50%{opacity:0}}
+.mail{--d:2.6s;margin:calc(var(--u)*2.6) 0 0;font-family:var(--font-mono);font-size:calc(var(--u)*3.05);color:var(--muted)}
+.land .s-cta .h{font-size:calc(var(--u)*8);margin-top:calc(var(--u)*5)}
+.land .btn{margin-top:calc(var(--u)*5)}
+.land .urlbar{margin-top:calc(var(--u)*4.4)}
+
+/* ---------- controls (px: touch targets stay 44px at any stage size) ---------- */
+.ctl{position:absolute;left:0;right:0;bottom:0;z-index:10;display:flex;align-items:center;gap:10px;padding:20px 14px 10px;
+  background:linear-gradient(180deg,rgba(4,8,16,0),rgba(4,8,16,.78));transition:opacity .35s ease,transform .35s ease}
+.stage.idle .ctl{opacity:0;transform:translateY(8px);pointer-events:none}
+.ctl button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ctl button:focus-visible{outline:2px solid var(--brand-pale);outline-offset:2px}
+.pp{flex:none;width:44px;height:44px;padding:0;border-radius:50%;border:1px solid rgba(148,163,184,.32);background:rgba(15,23,42,.78);
+  display:grid;place-items:center}
+.pp svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.pp .i-play{fill:#fff;stroke-width:1.6}
+.stage.paused .i-pause,.stage:not(.paused) .i-play{display:none}
+.segs{flex:1;min-width:0;display:flex;gap:6px}
+.seg{position:relative;flex:var(--g) 1 0;min-width:0;height:44px;padding:0;border:0;background:none;text-align:left}
+.seg::before{content:"";position:absolute;left:0;right:0;bottom:12px;height:4px;border-radius:2px;background:rgba(148,163,184,.3)}
+.seg i{position:absolute;left:0;bottom:12px;height:4px;border-radius:2px;background:var(--brand-hi);width:calc(var(--p,0)*100%)}
+.seg span{position:absolute;left:0;bottom:21px;font-size:10.5px;font-weight:500;letter-spacing:.02em;white-space:nowrap;color:var(--muted)}
+.seg.on span{color:var(--text)}
+
+/* fallback for browsers without document.getAnimations(): restart the CSS run in place */
+.reset,.reset *,.reset *::before,.reset *::after{animation:none!important}
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+  <div class="sr">
+    <h1>ResguardaIt</h1>
+    <p>Animación de marca. Tu presencia digital, protegida y sin dolores de cabeza. Servicios: ciberseguridad, desarrollo web, dominios, hosting administrado, correo corporativo y soporte. El dominio es tuyo, sin downtime, un solo contacto y sin tecnicismos. Contacto: contacto@resguardait.lat, resguardait.lat.</p>
+  </div>
+
+  <div class="bg" aria-hidden="true">
+    <i class="glow ga"></i>
+    <i class="glow gb"></i>
+    <div class="grid-mask"><i class="grid-dots"></i></div>
+    <i class="vig"></i>
+  </div>
+
+  <!-- 1 · De los dolores de cabeza al escudo -->
+  <section class="scene s-intro" style="--s:0s;--e:9.6s" aria-hidden="true">
+    <div class="lockup">
+      <div class="mark">
+        <div class="mark-move">
+          <i class="danger"></i><i class="aura"></i><i class="flash"></i>
+          <i class="halo" style="--hd:3.2s"></i><i class="halo" style="--hd:3.48s"></i>
+          <svg class="sh ghost" viewBox="3 1 26 30"><path d="M16 2 4 7v9c0 7.2 5 12.4 12 14 7-1.6 12-6.8 12-14V7L16 2Z"/></svg>
+          <svg class="sh fill" viewBox="3 1 26 30"><path d="M16 2 4 7v9c0 7.2 5 12.4 12 14 7-1.6 12-6.8 12-14V7L16 2Z"/></svg>
+          <svg class="sh edge" viewBox="3 1 26 30"><path data-draw style="--len:84" d="M16 2 4 7v9c0 7.2 5 12.4 12 14 7-1.6 12-6.8 12-14V7L16 2Z"/></svg>
+          <svg class="sh chk" viewBox="3 1 26 30"><path data-draw style="--len:16" d="m11 16 3.5 3.5L22 12"/></svg>
+        </div>
+        <div class="chips">
+          <p class="hook" data-split="words" style="--d:.15s">¿Te suena?</p>
+          <div class="chip" style="--px:-23;--py:-39;--lx:-50;--ly:-25;--r:-4deg;--i:0"><div class="chip-in">
+            <div class="face bad"><i class="ic"></i><span class="k">503</span><span class="v">Sitio caído</span></div>
+            <div class="face good"><i class="ic"><svg viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></i><span class="k">200 OK</span><span class="v">Sitio en línea</span></div>
+          </div></div>
+          <div class="chip" style="--px:23;--py:37;--lx:52;--ly:17;--r:-3deg;--i:1"><div class="chip-in">
+            <div class="face bad"><i class="ic"></i><span class="k">Respaldo</span><span class="v">Sin respaldos</span></div>
+            <div class="face good"><i class="ic"><svg viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></i><span class="k">Respaldo</span><span class="v">Respaldo diario</span></div>
+          </div></div>
+          <div class="chip" style="--px:24;--py:-30;--lx:50;--ly:-17;--r:3deg;--i:2"><div class="chip-in">
+            <div class="face bad"><i class="ic"></i><span class="k">http://</span><span class="v">Sitio no seguro</span></div>
+            <div class="face good"><i class="ic"><svg viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></i><span class="k">https://</span><span class="v">Conexión segura</span></div>
+          </div></div>
+          <div class="chip" style="--px:-23;--py:30;--lx:-54;--ly:4;--r:3deg;--i:3"><div class="chip-in">
+            <div class="face bad"><i class="ic"></i><span class="k">Dominio</span><span class="v">A nombre de otro</span></div>
+            <div class="face good"><i class="ic"><svg viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></i><span class="k">Dominio</span><span class="v">A tu nombre</span></div>
+          </div></div>
+          <div class="chip" style="--px:-4;--py:50;--lx:-46;--ly:33;--r:2deg;--i:4"><div class="chip-in">
+            <div class="face bad"><i class="ic"></i><span class="k">SPF · fail</span><span class="v">Correo en spam</span></div>
+            <div class="face good"><i class="ic"><svg viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></i><span class="k">SPF · pass</span><span class="v">Correo entregado</span></div>
+          </div></div>
+        </div>
+      </div>
+      <div class="wordmark" data-split="chars">Resguarda<span class="blue">It</span></div>
+      <p class="tagline" data-split="words">Tu presencia digital,<br><span class="blue">protegida y sin <br class="pbr">dolores de cabeza</span></p>
+      <p class="pill rise"><i></i>Ciberseguridad · Web · Dominios · Hosting</p>
+    </div>
+  </section>
+
+  <!-- 2 · Servicios -->
+  <section class="scene s-serv" style="--s:9.9s;--e:16.4s" aria-hidden="true">
+    <header class="head">
+      <p class="eyebrow rise">Servicios</p>
+      <h2 class="h" data-split="words" style="--d:.1s;--st:.055s">Todo lo que tu empresa <br class="pbr">necesita en línea</h2>
+    </header>
+    <div class="orbit">
+      <svg class="rings" viewBox="-50 -50 100 100"><circle class="r-out" r="47.6"/><g class="r-spin"><circle class="r-mid" r="33.5"/></g><circle class="r-in" r="13.4"/></svg>
+      <i class="spoke" style="--a:-90deg;--i:0"><b></b></i>
+      <i class="spoke" style="--a:-30deg;--i:1"><b></b></i>
+      <i class="spoke" style="--a:30deg;--i:2"><b></b></i>
+      <i class="spoke" style="--a:90deg;--i:3"><b></b></i>
+      <i class="spoke" style="--a:150deg;--i:4"><b></b></i>
+      <i class="spoke" style="--a:210deg;--i:5"><b></b></i>
+      <div class="hub pop" style="--d:.35s"><i class="hub-glow"></i>
+        <svg viewBox="3 1 26 30"><path fill="#0ea5e9" d="M16 2 4 7v9c0 7.2 5 12.4 12 14 7-1.6 12-6.8 12-14V7L16 2Z"/><path fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="m11 16 3.5 3.5L22 12"/></svg>
+      </div>
+      <div class="node up" style="--x:0;--y:-1;--i:0"><span class="tile"><svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.4 8.6 8 9.8 4.6-1.2 8-4.8 8-9.8V6l-8-3Z"/></svg></span><span class="lbl">Ciberseguridad</span></div>
+      <div class="node up" style="--x:.866;--y:-.5;--i:1"><span class="tile"><svg viewBox="0 0 24 24"><path d="M8 8l-4 4 4 4m8-8 4 4-4 4M13.5 5l-3 14"/></svg></span><span class="lbl">Desarrollo web</span></div>
+      <div class="node dn" style="--x:.866;--y:.5;--i:2"><span class="tile"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 0c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9m0-18c-2.5 2.6-3.8 5.6-3.8 9s1.3 6.4 3.8 9M3.5 9h17m-17 6h17"/></svg></span><span class="lbl">Dominios</span></div>
+      <div class="node dn" style="--x:0;--y:1;--i:3"><span class="tile"><svg viewBox="0 0 24 24"><path d="M4 5h16v5H4V5Zm0 9h16v5H4v-5Zm3.5-6.5h.01M7.5 16.5h.01"/></svg></span><span class="lbl">Hosting</span></div>
+      <div class="node dn" style="--x:-.866;--y:.5;--i:4"><span class="tile"><svg viewBox="0 0 24 24"><path d="M4 6.5h16v11H4v-11Zm0 .8 8 5.7 8-5.7"/></svg></span><span class="lbl">Correo</span></div>
+      <div class="node up" style="--x:-.866;--y:-.5;--i:5"><span class="tile"><svg viewBox="0 0 24 24"><path d="M12 3a7 7 0 0 0-7 7v4a3 3 0 0 0 3 3h1v-6H7v-1a5 5 0 0 1 10 0v1h-2v6h1a3 3 0 0 0 3-3v-4a7 7 0 0 0-7-7Z"/></svg></span><span class="lbl">Soporte</span></div>
+    </div>
+    <p class="cap sub rise" style="--d:3.3s">Desde el dominio hasta el servidor, <br class="pbr">en un solo lugar.</p>
+  </section>
+
+  <!-- 3 · Por qué ResguardaIt -->
+  <section class="scene s-why" style="--s:16.7s;--e:21.6s" aria-hidden="true">
+    <header class="head">
+      <p class="eyebrow rise">Por qué ResguardaIt</p>
+      <h2 class="h" data-split="words" style="--d:.1s">Lo técnico lo <br class="pbr">llevamos nosotros</h2>
+      <p class="sub rise" style="--d:.5s">El área de sistemas que tu empresa <br class="pbr">no tiene que contratar.</p>
+    </header>
+    <ul class="why">
+      <li style="--i:0"><i class="tick"><svg viewBox="0 0 24 24"><path data-draw style="--len:20" d="m5 13 4 4L19 7"/></svg></i><div><b>El dominio es tuyo</b><span class="t">Registrado a nombre de tu empresa.</span></div></li>
+      <li style="--i:1"><i class="tick"><svg viewBox="0 0 24 24"><path data-draw style="--len:20" d="m5 13 4 4L19 7"/></svg></i><div><b>Sin downtime</b><span class="t">Migraciones planificadas, sin cortes.</span></div></li>
+      <li style="--i:2"><i class="tick"><svg viewBox="0 0 24 24"><path data-draw style="--len:20" d="m5 13 4 4L19 7"/></svg></i><div><b>Un solo contacto</b><span class="t">Un mismo equipo para todo lo técnico.</span></div></li>
+      <li style="--i:3"><i class="tick"><svg viewBox="0 0 24 24"><path data-draw style="--len:20" d="m5 13 4 4L19 7"/></svg></i><div><b>Sin tecnicismos</b><span class="t">Te explicamos todo en español claro.</span></div></li>
+    </ul>
+  </section>
+
+  <!-- 4 · Contacto -->
+  <section class="scene s-cta" style="--s:21.9s" aria-hidden="true">
+    <div class="mini rise">
+      <svg viewBox="3 1 26 30"><path fill="#0ea5e9" d="M16 2 4 7v9c0 7.2 5 12.4 12 14 7-1.6 12-6.8 12-14V7L16 2Z"/><path fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="m11 16 3.5 3.5L22 12"/></svg>
+      <span>Resguarda<span class="blue">It</span></span>
+    </div>
+    <h2 class="h" data-split="words">¿Hablamos de <br class="pbr">tu proyecto?</h2>
+    <p class="sub rise">Una propuesta clara, sin tecnicismos <br class="pbr">ni letra chica.</p>
+    <div class="btn pop"><span>Solicitar propuesta</span><svg viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></div>
+    <div class="urlbar rise"><svg viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z"/></svg><span class="typed"><span>resguardait.lat</span><i class="caret"></i></span></div>
+    <p class="mail rise">contacto@resguardait.lat</p>
+  </section>
+
+  <div class="ctl" id="ctl">
+    <button class="pp" id="pp" type="button" aria-label="Pausar">
+      <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
+      <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5-11-6.5Z"/></svg>
+    </button>
+    <div class="segs" role="group" aria-label="Escenas">
+      <button class="seg" type="button" style="--g:9.9" aria-label="Ir a la escena Marca"><span>Marca</span><i></i></button>
+      <button class="seg" type="button" style="--g:6.8" aria-label="Ir a la escena Servicios"><span>Servicios</span><i></i></button>
+      <button class="seg" type="button" style="--g:5.2" aria-label="Ir a la escena Por qué"><span>Por qué</span><i></i></button>
+      <button class="seg" type="button" style="--g:6.1" aria-label="Ir a la escena Contacto"><span>Contacto</span><i></i></button>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  var stage=document.getElementById('stage'),ctl=document.getElementById('ctl'),pp=document.getElementById('pp');
+  var segs=[].slice.call(document.querySelectorAll('.seg'));
+  var T=28000,STARTS=[0,9900,16700,21900],POSTER=9000;
+  var reduce=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var list=[],t=0,amb=0,lastT=-1,playing=false,prev=0,idleTimer=0;
+  stage.classList.add('js');
+
+  /* Split headings into words (masked) or letters so each one rises on its own. */
+  function split(el,mode){
+    var i=0;
+    (function walk(node){
+      [].slice.call(node.childNodes).forEach(function(n){
+        if(n.nodeType===3){
+          var frag=document.createDocumentFragment();
+          var parts=mode==='chars'?n.textContent.replace(/\s+/g,'').split(''):n.textContent.split(/(\s+)/);
+          parts.forEach(function(p){
+            if(!p)return;
+            if(/^\s+$/.test(p)){frag.appendChild(document.createTextNode(' '));return;}
+            var w=document.createElement('span');w.className='w';w.style.setProperty('--i',String(i++));w.textContent=p;
+            if(mode==='chars'){frag.appendChild(w);}
+            else{var m=document.createElement('span');m.className='m';m.appendChild(w);frag.appendChild(m);}
+          });
+          node.replaceChild(frag,n);
+        }else if(n.nodeType===1&&n.tagName!=='BR'){walk(n);}
+      });
+    })(el);
+  }
+  [].forEach.call(document.querySelectorAll('[data-split]'),function(el){split(el,el.getAttribute('data-split'));});
+
+  /* Exact stroke lengths for the paths that draw themselves. */
+  [].forEach.call(document.querySelectorAll('[data-draw]'),function(p){
+    try{var L=p.getTotalLength();if(L>0)p.style.setProperty('--len',(L+.6).toFixed(2));}catch(e){}
+  });
+
+  /* One unit for everything: portrait fits a 100 x 158 canvas, landscape a 160 x 100 one. */
+  function fit(){
+    var w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
+    var land=w/h>1.15;
+    stage.classList.toggle('land',land);
+    var u=land?Math.min(w/160,h/100):Math.min(w/100,h/158);
+    stage.style.setProperty('--u',u.toFixed(3)+'px');
+  }
+  fit();
+
+  if(!document.getAnimations){
+    ctl.hidden=true;
+    setInterval(function(){stage.classList.add('reset');void stage.offsetWidth;stage.classList.remove('reset');},T);
+    window.addEventListener('resize',fit);
+    return;
+  }
+
+  /* Every CSS animation is paused and driven from one clock, so the piece can pause, seek and loop.
+     Names starting with "amb-" are ambient loops on their own clock that never rewinds. */
+  function collect(){
+    list=document.getAnimations().filter(function(a){
+      return typeof a.animationName==='string'&&a.effect&&a.effect.target&&stage.contains(a.effect.target)&&!ctl.contains(a.effect.target);
+    }).map(function(a){
+      var tm=a.effect.getComputedTiming();
+      try{a.pause();}catch(e){}
+      return {a:a,amb:a.animationName.indexOf('amb-')===0,start:tm.delay,end:tm.endTime};
+    });
+  }
+  function apply(force){
+    for(var k=0;k<list.length;k++){
+      var it=list[k];
+      if(it.amb){it.a.currentTime=amb;continue;}
+      if(!force){
+        if(t<it.start&&lastT<it.start)continue;
+        if(t>it.end&&lastT>it.end)continue;
+      }
+      it.a.currentTime=t;
+    }
+    lastT=t;
+  }
+  function ui(){
+    for(var i=0;i<segs.length;i++){
+      var a=STARTS[i],b=i+1<STARTS.length?STARTS[i+1]:T;
+      var p=t<=a?0:(t>=b?1:(t-a)/(b-a));
+      segs[i].style.setProperty('--p',p.toFixed(4));
+      segs[i].classList.toggle('on',t>=a&&t<b);
+    }
+  }
+  function seek(ms){t=Math.max(0,Math.min(T-1,ms));apply(true);ui();}
+  function wake(){
+    stage.classList.remove('idle');clearTimeout(idleTimer);
+    if(playing)idleTimer=setTimeout(function(){
+      var kb=null;try{kb=ctl.querySelector(':focus-visible');}catch(e){}
+      if(playing&&!kb)stage.classList.add('idle');
+    },2600);
+  }
+  function setPlaying(v){
+    playing=v;stage.classList.toggle('paused',!v);
+    pp.setAttribute('aria-label',v?'Pausar':'Reproducir');
+    wake();
+  }
+  function tick(now){
+    var dt=prev?Math.min(now-prev,80):0;prev=now;
+    if(playing){
+      t+=dt;amb+=dt;
+      if(t>=T){t-=T;apply(true);}else{apply(false);}
+      ui();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  pp.addEventListener('click',function(){setPlaying(!playing);});
+  segs.forEach(function(b,i){b.addEventListener('click',function(){seek(STARTS[i]);setPlaying(true);});});
+  ctl.addEventListener('focusin',wake);
+  stage.addEventListener('pointermove',function(e){if(e.pointerType!=='touch')wake();});
+  stage.addEventListener('click',function(e){
+    if(ctl.contains(e.target)){wake();return;}
+    if(stage.classList.contains('idle')){wake();return;}
+    setPlaying(!playing);
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('button'))return;
+    var i=0,k;
+    for(k=0;k<STARTS.length;k++){if(t>=STARTS[k])i=k;}
+    if(e.key===' '||e.key==='k'){e.preventDefault();setPlaying(!playing);}
+    else if(e.key==='ArrowRight'){seek(STARTS[(i+1)%STARTS.length]);wake();}
+    else if(e.key==='ArrowLeft'){seek(STARTS[t-STARTS[i]>1200?i:(i+STARTS.length-1)%STARTS.length]);wake();}
+    else if(e.key==='Home'){seek(0);wake();}
+  });
+
+  collect();
+  t=reduce?POSTER:0;apply(true);ui();
+  stage.classList.add('paused');pp.setAttribute('aria-label','Reproducir');
+
+  if('ResizeObserver' in window){new ResizeObserver(function(){fit();collect();apply(true);}).observe(stage);}
+  else{window.addEventListener('resize',function(){fit();collect();apply(true);});}
+
+  /* Hold the first frame until the brand fonts are in, so the wordmark never flashes in a fallback face. */
+  var waits=[];
+  try{
+    if(document.fonts&&document.fonts.load){
+      waits.push(document.fonts.load('700 20px Inter'));
+      waits.push(document.fonts.load('600 20px "JetBrains Mono"'));
+    }
+  }catch(e){}
+  Promise.race([
+    Promise.all(waits).catch(function(){}),
+    new Promise(function(r){setTimeout(r,1500);})
+  ]).then(function(){
+    collect();apply(true);
+    if(!reduce)setPlaying(true);
+    requestAnimationFrame(tick);
+  });
+
+  /* Small handle for frame-accurate capture (e.g. exporting to video). */
+  window.resguardaAnim={
+    duration:T,
+    play:function(){setPlaying(true);},
+    pause:function(){setPlaying(false);},
+    seek:seek,
+    at:function(ms,a){playing=false;stage.classList.add('paused');t=Math.max(0,Math.min(T-1,ms));amb=(a==null?ms:a);apply(true);ui();}
+  };
+})();
+</script>
+</body>
+</html>

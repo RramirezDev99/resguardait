@@ -9,10 +9,13 @@ Sitio web de ResguardaIt construido con **Astro 5 + Tailwind CSS 4**, desplegado
 ```
 resguardait/
 ├── public/                 # Archivos estáticos (se copian tal cual)
+│   ├── animacion/
+│   │   └── index.html      # Animación de marca completa  →  /animacion/
 │   ├── favicon.svg
 │   └── robots.txt
 ├── src/
 │   ├── components/         # Piezas reutilizables de UI
+│   │   ├── BrandAnimation.astro    # Animación del hero (solo CSS)
 │   │   ├── CTA.astro
 │   │   ├── Footer.astro
 │   │   ├── Header.astro
@@ -40,7 +43,8 @@ resguardait/
 │   └── consts.ts           # ⭐ Textos, servicios, planes y casos
 ├── astro.config.mjs
 ├── package.json
-└── tsconfig.json
+├── tsconfig.json
+└── wrangler.jsonc          # Despliegue: Cloudflare publica dist/ como sitio estático
 ```
 
 **Regla clave:** casi todo el contenido editable vive en `src/consts.ts`. Cambiar un servicio, un plan o el correo de contacto no requiere tocar el HTML.
@@ -110,6 +114,8 @@ Como el dominio ya está en Cloudflare, los registros DNS se crean solos. Repite
 
 Cada `git push` a `main` publica automáticamente. Las ramas generan URLs de preview, así que puedes revisar cambios antes de que lleguen a producción.
 
+> `wrangler.jsonc` le indica a Cloudflare qué publicar: la carpeta `dist/` como sitio estático, con la página 404 del sitio. El campo `name` debe coincidir con el nombre del Worker en el panel.
+
 ---
 
 ## Añadir un artículo al blog
@@ -130,6 +136,15 @@ Contenido en Markdown.
 
 El archivo aparece automáticamente en `/blog` y su URL es `/blog/mi-articulo`.
 Usa `draft: true` para escribirlo sin publicarlo.
+
+---
+
+## Animación de marca
+
+Son dos piezas independientes:
+
+- **Hero** — `src/components/BrandAnimation.astro`, usado en `src/pages/index.astro`. Es solo CSS: un ciclo de 9.6 s en bucle que escala con el ancho de su contenedor. Las alertas y sus textos están en el array `alerts` del propio componente. Con `prefers-reduced-motion` muestra la ilustración fija.
+- **Página completa** — `public/animacion/index.html`, servida tal cual en `/animacion/`. Son las cuatro escenas (28 s) con pausa y salto entre escenas. Lleva `noindex`, no pasa por el build y carga sus fuentes desde Google Fonts. Se puede compartir el enlace o incrustar con `<iframe src="/animacion/">`.
 
 ---
 
